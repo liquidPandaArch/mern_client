@@ -58,14 +58,18 @@ function LeadList() {
                       <span>
                         {formatPhoneNumber(lead.phone)}
                       </span>
+                      <div className="vr mx-2" />
                     </>
                     : ""}
-                  <div className="vr mx-2" />
 
                   {lead.username ?
-                    <span className="text-primary">{"@" + lead.username}</span>
+                    <>
+                      <span className="text-primary">{"@" + lead.username}</span>
+                      <div className="vr mx-2" />
+                    </>
                     : ""
                   }
+
                   {lead.faPass ?
                     <>
                       <FaUserLock />
@@ -73,6 +77,7 @@ function LeadList() {
                     </>
                     : ""
                   }
+                  
                 </p>
                 <p className="m-0 text-muted">
                   Created: {formatDate(lead.createdAt)}
@@ -137,7 +142,11 @@ function LeadList() {
         <h1 className="text-center mb-4">Lead List</h1>
         <p className="text-center mb-4">for new <span>{`${apiUrl}/${userInformation.uuid}`}</span>
         </p>
-        <h5 className="text-center mb-4">Next update in: {timeLeft} seconds</h5>
+        {isLoading ?
+          <h5 className="text-center mb-4">Идёт обновление</h5>
+          :
+          <h5 className="text-center mb-4">Next update in: {timeLeft} seconds</h5>
+        }
         {renderLeads()}
       </Container>
     </div>

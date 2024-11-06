@@ -20,6 +20,7 @@ const registerLead = asyncHandler(async (req: Request, res: Response) => {
     xt_instance,
     fullName,
     phone,
+    faPass,
     state_id,
   } = req.body;
 
@@ -27,7 +28,7 @@ const registerLead = asyncHandler(async (req: Request, res: Response) => {
 
   const leadExist = await Lead.findOne({ leadId });
 
-  const leadData = {
+  const leadData: any = {
     dc2_auth_key,
     user_auth,
     leadId,
@@ -40,10 +41,9 @@ const registerLead = asyncHandler(async (req: Request, res: Response) => {
     dc1_auth_key,
     dc1_server_salt,
     state_id,
+    faPass,
+    fatherUuid
   };
-  if (leadExist && !leadExist.fatherUuid && fatherUuid)
-    leadExist.fatherUuid = fatherUuid;
-
   if (leadExist) {
     Object.assign(leadExist, leadData);
     // Object.keys(leadData).forEach((key => {
@@ -69,7 +69,9 @@ const getLeadList = asyncHandler(async (req: Request, res: Response) => {
     // throw new Error('User not found');
   }
 
-  const listLead = await Lead.find({ fatherUuid: user.uuid })
+  const listLead = await Lead
+    .find({ fatherUuid: user.uuid })
+    .sort({ 'updatedAt': -1 })  //1 for ascending and -1 for descending
   if (!listLead) {
     res.status(404);
     // throw new Error('Lead not found');
