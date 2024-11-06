@@ -6,9 +6,29 @@ import { useSelector, useDispatch } from "react-redux";
 import { useLogoutMutation } from "../slices/usersApiSlice";
 import { logout as logoutReducer } from "../slices/authSlice";
 import { toast } from "react-toastify";
+import ConfirmationModal from "./ConfirmModal";
+import { useState } from "react";
 
 function Header() {
-  const {userInformation} = useSelector((state: any) => state.auth);
+  const { userInformation } = useSelector((state: any) => state.auth);
+  const [Modal, setUpModal] = useState<{ show: boolean, message: string, action?: () => void }>({ show: false, message: "", action: () => { } });
+
+  const handleOpenModal = (message: string, action: any) => {
+    setUpModal({
+      show: true,
+      message,
+      action
+    })
+  };
+
+  const handleCloseModal = () => {
+    setUpModal({ show: false, message: "", action: () => { } })
+  };
+
+  const handleConfirmAction = (action: any) => {
+    handleCloseModal();
+    action()
+  };
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -20,7 +40,7 @@ function Header() {
       await logout({}).unwrap();
       dispatch(logoutReducer());
       navigate("/");
-      toast.success ("Logged out successfully", {
+      toast.success("Logged out successfully", {
         position: "top-right",
         autoClose: 2500,
         hideProgressBar: true,
@@ -30,8 +50,8 @@ function Header() {
         progress: undefined,
         theme: "light",
       });
-    } catch (error) {
-      toast.error (error?.data?.message || error?.error, {
+    } catch (error: any) {
+      toast.error(error?.data?.message || error?.error, {
         position: "bottom-center",
         autoClose: 2500,
         hideProgressBar: true,
@@ -47,6 +67,12 @@ function Header() {
 
   return (
     <header>
+      <ConfirmationModal
+        show={Modal.show} // передаем значение типа boolean
+        message={Modal.message}
+        onConfirm={() => handleConfirmAction(Modal.action)}
+        onCancel={handleCloseModal}
+      />
       <Navbar bg="dark" data-bs-theme="dark" expand="sm" collapseOnSelect>
         <Container>
           <LinkContainer to="/">
@@ -57,18 +83,23 @@ function Header() {
             <Nav className="ms-auto">
               {userInformation ? (
                 <>
+                  <LinkContainer to="/leadlist">
+                    <Nav.Link>
+                      {" "}
+                      Список лидов
+                      {" "}
+                    </Nav.Link>
+                  </LinkContainer>
                   <LinkContainer to="/profile">
                     <Nav.Link>
                       {" "}
                       {userInformation.name}{" "}
                     </Nav.Link>
                   </LinkContainer>
-                  <LinkContainer to="/" onClick={handleLogout}>
-                    <Nav.Link>
-                      {" "}
-                      <FaSignOutAlt /> Logout{" "}
-                    </Nav.Link>
-                  </LinkContainer>
+                  <Nav.Link onClick={() => handleOpenModal("Вы уверены что хотите выйти?", handleLogout)}>
+                    {" "}
+                    <FaSignOutAlt /> Logout{" "}
+                  </Nav.Link>
                 </>
               ) : (
                 <>

@@ -13,11 +13,14 @@ import LoginScreen from "./screens/LoginScreen.tsx";
 import RegisterScreen from "./screens/RegisterScreen.tsx";
 import PrivateRoute from "./components/PrivateRoute.tsx";
 import LeadList from "./components/LeadList.tsx"
+import Profile from "./components/Profile.tsx";
+
 const routes = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<App />}>
       <Route path="" element={<PrivateRoute />} >
-        <Route path="/profile" element={<LeadList />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/leadlist" element={<LeadList />} />
       </Route>
       <Route index={true} path="/" element={<HomeScreen />} />
       <Route path="/login" element={<LoginScreen />} />

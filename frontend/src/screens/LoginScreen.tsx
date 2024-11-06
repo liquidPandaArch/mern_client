@@ -26,8 +26,7 @@ function LoginScreen() {
 
   useEffect(() => {
     if (userInformation) {
-      console.log(`fired`);
-      navigate("/");
+      navigate("/leadlist");
       toast.warn("You are already logged in", {
         position: "top-right",
         autoClose: 2500,
@@ -51,7 +50,7 @@ function LoginScreen() {
         console.log(`return_to`, return_to);
         navigate(return_to);
       } else {
-        navigate("/");
+        navigate("/leadlist");
       }
     } catch (error) {
       toast.error(error?.data?.message || error?.error, {
