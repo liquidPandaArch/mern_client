@@ -10,34 +10,55 @@ const apiUrl = import.meta.env.VITE_TELEGRAM_URL
 function LeadList() {
   const { userInformation } = useSelector((state) => state.auth);
   const [leads, setLeads] = useState([]);
-  const [getList, { isLoading }] = useGetListMutation();
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [currPage, setCurrPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [timeLeft, setTimeLeft] = useState(30); // Unified time tracking
+  const [getList, { isLoading: loadingLeads }] = useGetListMutation();
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Fetch leads function
   const fetchLeads = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
     try {
-      const fetchedLeads = await getList().unwrap();
-      setLeads(fetchedLeads);
-      setTimeLeft(30); // Reset timer
+      const fetchedLeadsR = await getList(currPage).unwrap();
+      setLeads(fetchedLeadsR.leadList);
+      setTotalPages(fetchedLeadsR.totalPages);
     } catch (error) {
       console.error("Error fetching leads:", error);
+    }
+    setIsLoading(false);
+  };
+
+  // Page change handler
+  const handleChangePage = (page: number) => {
+    if (page >= 1 && page <= totalPages && page !== currPage) {
+      setCurrPage(page);
     }
   };
 
   useEffect(() => {
-    // Fetch leads on mount and set intervals
-    fetchLeads();
-    const intervalId = setInterval(fetchLeads, 30000);
-    const countdownId = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
+    if (timeLeft <= 0) {
+      fetchLeads();
+      setTimeLeft(30);
+    } else {
+      const timer = setTimeout(() => setTimeLeft(prev => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [timeLeft, currPage]);
 
-    // Cleanup on unmount
-    return () => {
-      clearInterval(intervalId);
-      clearInterval(countdownId);
-    };
+  useEffect(() => {
+    if (currPage === 1) {
+      fetchLeads();
+      setTimeLeft(30);
+    } else {
+      setTimeLeft(-1);
+    }
+  }, [currPage]);
+  useEffect(() => {
+    fetchLeads();
+    setTimeLeft(30);
   }, []);
+
   const renderLeads = () => {
     return leads.length > 0 ?
       (<ListGroup className="w-100">
@@ -77,7 +98,7 @@ function LeadList() {
                     </>
                     : ""
                   }
-                  
+
                 </p>
                 <p className="m-0 text-muted">
                   Created: {formatDate(lead.createdAt)}
@@ -145,11 +166,40 @@ function LeadList() {
         {isLoading ?
           <h5 className="text-center mb-4">Идёт обновление</h5>
           :
-          <h5 className="text-center mb-4">Next update in: {timeLeft} seconds</h5>
+          <>
+            {
+              currPage === 1
+                ? <h5 className="text-center mb-4">Next update in: {timeLeft} seconds</h5>
+                : <h5 className="text-center mb-4">Текущая страница: {currPage}</h5>
+            }
+          </>
+        }
+        {totalPages > 1 &&
+          <nav aria-label="navigationlead" className={isLoading ? "opacity-25" : ""}>
+            <ul className="pagination justify-content-center">
+              <li role="button" className={"page-item" + (currPage === 1 ? " disabled" : "")}>
+                <a className="page-link" aria-label="Previous">
+                  <span aria-hidden="true" onClick={() => handleChangePage(currPage - 1)}>&laquo;</span>
+                </a>
+              </li>
+              {
+                (new Array(totalPages).fill(undefined)).map((value, index, array) => {
+                  return <li role="button" className={"page-item" + (currPage === index + 1 ? " active" : "")}>
+                    <span className="page-link" onClick={() => handleChangePage(index + 1)}>{index + 1}</span>
+                  </li>
+                })
+              }
+              <li role="button" className={"page-item" + (currPage === totalPages ? " disabled" : "")}>
+                <a className="page-link " aria-label="Next">
+                  <span aria-hidden="true" onClick={() => handleChangePage(currPage + 1)}>&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
         }
         {renderLeads()}
       </Container>
-    </div>
+    </div >
   );
 }
 

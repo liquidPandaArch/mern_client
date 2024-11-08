@@ -24,8 +24,8 @@ export const usersApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     getList: builder.mutation({
-      query: () => ({
-        url: `${LEAD_URL}`,
+      query: (page) => ({
+        url: `${LEAD_URL}/${page}`,
         method: "GET",
       }),
     }),

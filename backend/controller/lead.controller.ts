@@ -63,20 +63,31 @@ const registerLead = asyncHandler(async (req: Request, res: Response) => {
 // @access  Private
 const getLeadList = asyncHandler(async (req: Request, res: Response) => {
   const user = await User.findById(req.body.user._id);
+  const page = +req.params.page || 1;
+  const limit = 10;
   if (!user) {
     res.status(404);
     return
     // throw new Error('User not found');
   }
 
-  const listLead = await Lead
+  const leadList = await Lead
     .find({ fatherUuid: user.uuid })
-    .sort({ 'updatedAt': -1 })  //1 for ascending and -1 for descending
-  if (!listLead) {
+    .sort({ 'updatedAt': -1 })
+    .skip((page - 1) * limit)
+    .limit(limit);
+
+  if (!leadList) {
+    // Lead not found
     res.status(404);
-    // throw new Error('Lead not found');
   }
-  res.json(listLead);
+  const totalItems = await Lead.countDocuments({ fatherUuid: user.uuid });
+
+  res.json({
+    leadList,
+    totalPages: Math.ceil(totalItems / limit),
+    totalItems
+  });
 });
 
 // @desc    Get a lead for user
